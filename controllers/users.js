@@ -48,6 +48,7 @@ module.exports.updateProfile = (req, res) => {
     { name, about },
     { new: true, runValidators: true },
   )
+  .orFail(new Error('NotValidId'))
     .then((user) => {
      // if (!user) {
      //   return res.status(ERROR_BAD_REQUEST).send({ message: 'Пользователь с указанным _id не найден'});
@@ -58,7 +59,7 @@ module.exports.updateProfile = (req, res) => {
       if (err.name === 'NotValidId') {
         res.status(ERROR_BAD_REQUEST).send({ message: 'Пользователь с указанным _id не найден'});
       }
-      else if (err.name === 'CastError') {
+      else if (err.name === 'CastError' || err.name === 'ValidationError') {
         res.status(ERROR_NOT_FOUND).send({ message: 'Введены некорректные данные'})
       } else {
         res.status(ERROR_SERVER).send({ message: 'Произошла ошибка' })
@@ -73,6 +74,7 @@ module.exports.updateAvatar = (req, res) => {
     { avatar },
     { new: true, runValidators: true },
   )
+  .orFail(new Error('NotValidId'))
   .then((user) => {
    // if (!user) {
     //  return res.status(ERROR_BAD_REQUEST).send({ message: 'Пользователь с указанным _id не найден'});
@@ -83,7 +85,7 @@ module.exports.updateAvatar = (req, res) => {
     if (err.name === 'NotValidId') {
       res.status(ERROR_BAD_REQUEST).send({ message: 'Пользователь с указанным _id не найден'});
     }
-    else if (err.name === 'CastError') {
+    else if (err.name === 'CastError' || err.name === 'ValidationError') {
       res.status(ERROR_NOT_FOUND).send({ message: 'Введены некорректные данные'})
     } else {
       res.status(ERROR_SERVER).send({ message: 'Произошла ошибка' })
