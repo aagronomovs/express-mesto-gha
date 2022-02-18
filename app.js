@@ -28,6 +28,9 @@ app.use((req, res, next) => {
 
 app.use(routerUser);
 app.use(routerCards);
+app.use( '*', (req, res) => {
+  res.status(404).send({ message: 'Запрошенной страницы не существует'})
+});
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`)

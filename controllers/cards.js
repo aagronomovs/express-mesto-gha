@@ -28,10 +28,10 @@ module.exports.deleteCard = (req, res) => {
     Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        res.status(ERROR_NOT_FOUND).send( { message: 'Карточка с указанным _id не найдена.'});
+        res.status(ERROR_BAD_REQUEST).send( { message: 'Карточка с указанным _id не найдена.'});
       }
       else if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) {
-        res.status(ERROR_BAD_REQUEST).send( { message: 'Невозможно удалить данную карточку'});
+        res.status(ERROR_NOT_FOUND).send( { message: 'Невозможно удалить данную карточку'});
       }
       return Card.findByIdAndRemove(req.params.cardId);
     })
