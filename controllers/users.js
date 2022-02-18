@@ -48,20 +48,17 @@ module.exports.updateProfile = (req, res) => {
     { name, about },
     { new: true, runValidators: true },
   )
-  .orFail(new Error('NotValidId'))
     .then((user) => {
-     // if (!user) {
-     //   return res.status(ERROR_BAD_REQUEST).send({ message: 'Пользователь с указанным _id не найден'});
-     // }
-      res.send({ data: user });
+     if (!user) {
+        return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден'});
+      }
+      return res.send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'NotValidId') {
-        res.status(ERROR_BAD_REQUEST).send({ message: 'Пользователь с указанным _id не найден'});
+      if (err.name === 'ValidationError') {
+        res.status(ERROR_BAD_REQUEST).send({ message: 'Введены некорректные данные'});
       }
-      else if (err.name === 'CastError' || err.name === 'ValidationError') {
-        res.status(ERROR_NOT_FOUND).send({ message: 'Введены некорректные данные'})
-      } else {
+       else {
         res.status(ERROR_SERVER).send({ message: 'Произошла ошибка' })
       }
     })
@@ -74,20 +71,18 @@ module.exports.updateAvatar = (req, res) => {
     { avatar },
     { new: true, runValidators: true },
   )
-  .orFail(new Error('NotValidId'))
+
   .then((user) => {
-   // if (!user) {
-    //  return res.status(ERROR_BAD_REQUEST).send({ message: 'Пользователь с указанным _id не найден'});
-    //}
-     res.send({ data: user });
+    if (!user) {
+      return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден'});
+    }
+    return res.send({ data: user });
   })
   .catch((err) => {
-    if (err.name === 'NotValidId') {
-      res.status(ERROR_BAD_REQUEST).send({ message: 'Пользователь с указанным _id не найден'});
+    if (err.name === 'ValidationError') {
+      res.status(ERROR_BAD_REQUEST).send({ message: 'Введены некорректные данные'});
     }
-    else if (err.name === 'CastError' || err.name === 'ValidationError') {
-      res.status(ERROR_NOT_FOUND).send({ message: 'Введены некорректные данные'})
-    } else {
+     else {
       res.status(ERROR_SERVER).send({ message: 'Произошла ошибка' })
     }
   })
