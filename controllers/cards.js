@@ -36,7 +36,13 @@ module.exports.deleteCard = (req, res) => {
       return Card.findByIdAndRemove(req.params.cardId);
     })
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(ERROR_SERVER).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(ERROR_NOT_FOUND).send({ message: 'Переданы некорректные данные'})
+      } else {
+        res.status(ERROR_SERVER).send({ message: 'Произошла ошибка' })
+      }
+    })
   }
 
   module.exports.likeCard = (req, res) => {

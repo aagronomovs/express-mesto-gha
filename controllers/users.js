@@ -74,7 +74,7 @@ module.exports.updateAvatar = (req, res) => {
 
   .then((user) => {
     if (!user) {
-      return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден'});
+      res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден'});
     }
     return res.send({ data: user });
   })
