@@ -25,17 +25,20 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-     Card.findById(req.params.cardId)
+  Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
      if (!card) {
        return res.status(ERROR_BAD_REQUEST).send( { message: 'Карточка с указанным _id не найдена.'});
+      } else {
+        res.send({ data: card })
       }
+    })
     //  else if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) {
       //  return res.status(ERROR_NOT_FOUND).send( { message: 'Невозможно удалить данную карточку'});
      // }
-     return Card.findByIdAndRemove(req.params.cardId);
-    })
-    .then((card) => res.send({ data: card }))
+ //    return Card.findByIdAndRemove(req.params.cardId);
+   // })
+   // .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные.' });
