@@ -30,9 +30,9 @@ module.exports.deleteCard = (req, res) => {
      if (!card) {
        return res.status(ERROR_BAD_REQUEST).send( { message: 'Карточка с указанным _id не найдена.'});
       }
-      else if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) {
-        return res.status(ERROR_NOT_FOUND).send( { message: 'Невозможно удалить данную карточку'});
-      }
+    //  else if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) {
+      //  return res.status(ERROR_NOT_FOUND).send( { message: 'Невозможно удалить данную карточку'});
+     // }
      return Card.findByIdAndRemove(req.params.cardId);
     })
     .then((card) => res.send({ data: card }))
