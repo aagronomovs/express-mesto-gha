@@ -28,10 +28,10 @@ module.exports.deleteCard = (req, res) => {
      Card.findById(req.params.cardId)
     .then((card) => {
      if (!card) {
-        res.status(ERROR_BAD_REQUEST).send( { message: 'Карточка с указанным _id не найдена.'});
+       return res.status(ERROR_BAD_REQUEST).send( { message: 'Карточка с указанным _id не найдена.'});
       }
       else if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) {
-        res.status(ERROR_NOT_FOUND).send( { message: 'Невозможно удалить данную карточку'});
+        return res.status(ERROR_NOT_FOUND).send( { message: 'Невозможно удалить данную карточку'});
       }
      return Card.findByIdAndRemove(req.params.cardId);
     })
@@ -53,9 +53,11 @@ module.exports.deleteCard = (req, res) => {
     )
       .then((card) => {
         if (!card) {
-          res.status(ERROR_NOT_FOUND).send({ message:'Карточка с указанным _id не найдена.'});
+          return res.status(ERROR_NOT_FOUND).send({ message:'Карточка с указанным _id не найдена.'});
         }
-        return res.status(200).send({ data: card });
+        else {
+          return res.status(200).send({ data: card });
+        }
       })
       .catch((err) => {
         if (err.name === 'CastError') {
@@ -74,9 +76,10 @@ module.exports.deleteCard = (req, res) => {
     )
       .then((card) => {
         if (!card) {
-          res.status(ERROR_NOT_FOUND).send( { message:'Карточка с указанным _id не найдена.'});
+          return res.status(ERROR_NOT_FOUND).send( { message:'Карточка с указанным _id не найдена.'});
+        } else {
+          return res.status(200).send({ data: card });
         }
-        return res.status(200).send({ data: card });
       })
       .catch((err) => {
         if (err.name === 'CastError') {
