@@ -1,13 +1,19 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const routerUser = require('./routes/users');
 const routerCards = require('./routes/cards');
+const { login, createUser} = require('./controllers/users');
+const NotFoundError = require('./errors/notFoundError');
+const centralizedErrors = require('./middlewares/centralizedErrors');
 
 const { PORT = 3000 } = process.env;
 
 
 const app = express();
+
+//console.log(process.env.NODE_ENV);
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
@@ -25,12 +31,16 @@ app.use((req, res, next) => {
 
   next();
 });
+app.post('/signin', login);
+app.post('/signup', createUser);
 
 app.use(routerUser);
 app.use(routerCards);
-app.use( '*', (req, res) => {
-  res.status(404).send({ message: 'Запрошенной страницы не существует'})
+//app.use(errors());
+app.use( '*', (req, res, next) => {
+  next(new NotFoundError('Запрошенной страницы не существует'))
 });
+app.use(centralizedErrors);
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`)
