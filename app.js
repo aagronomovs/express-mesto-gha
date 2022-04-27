@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { celebrate, Joi, errors } = require('celebrate');
+//const validator = require('validator');
 const routerUser = require('./routes/users');
 const routerCards = require('./routes/cards');
 const { login, createUser} = require('./controllers/users');
@@ -25,13 +27,28 @@ app.use(bodyParser.urlencoded({ extended: true })); // для приёма ве�
 
 app.use(express.json());
 
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().required(),
+    email: Joi.string().required().email(),
+    password: Joi.string().required()
+}),
+}),
+createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required()
+}),
+}),
+login);
 
-app.post('/signin', login);
-app.post('/signup', createUser);
 app.use(auth);
 app.use(routerUser);
 app.use(routerCards);
-//app.use(errors());
+app.use(errors());
 app.use( '*', (req, res, next) => {
   next(new NotFoundError('Запрошенной страницы не существует'))
 });

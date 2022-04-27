@@ -96,6 +96,23 @@ module.exports.getCurrentUser = (req, res, next) => {
     });
 };
 
+module.exports.getUserById = (req, res, next) => {
+  const { userId } = req.params;
+  console.log(userId);
+  User.findById(userId)
+    .orFail(() => {
+      next(new NotFoundError('Пользователь с таким id не найден'));
+    })
+    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Передан невалидный id пользователя'));
+      } else {
+        next(err);
+      }
+    });
+};
+
 module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
