@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const routerUser = require('./routes/users');
 const routerCards = require('./routes/cards');
 const { login, createUser} = require('./controllers/users');
+const auth = require('./middlewares/auth');
 const NotFoundError = require('./errors/notFoundError');
 const centralizedErrors = require('./middlewares/centralizedErrors');
 
@@ -24,16 +25,10 @@ app.use(bodyParser.urlencoded({ extended: true })); // для приёма ве�
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '620b6570ee3fa7514ed86387' // вставьте сюда _id созданного в предыдущем пункте пользователя
-  };
 
-  next();
-});
 app.post('/signin', login);
 app.post('/signup', createUser);
-
+app.use(auth);
 app.use(routerUser);
 app.use(routerCards);
 //app.use(errors());
