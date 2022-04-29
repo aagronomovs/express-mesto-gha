@@ -1,26 +1,16 @@
 const validator = require('validator');
 const { celebrate, Joi } = require('celebrate');
-const { ObjectId } = require('mongoose').Types;
+
 
 const validateUserId = celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().required().custom((value, helpers) => {
-      if (ObjectId.isValid(value)) {
-        return value;
-      }
-      return helpers.message('Невалидный id пользователя');
-    }),
+    userId: Joi.string().hex().length(24).required().alphanum(),
   }),
 });
 
 const validateCardId = celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required().custom((value, helpers) => {
-      if (ObjectId.isValid(value)) {
-        return value;
-      }
-      return helpers.message('Невалидный id карточки');
-    }),
+    cardId: Joi.string().hex().length(24).required().alphanum(),
   }),
 });
 
@@ -31,27 +21,24 @@ const validateProfile = celebrate({
   })
 })
 
+const validateLink = (value) => {
+  if (!validator.isURL(value, { require_protocol: true })) {
+    throw new Error('Неправильный формат ссылки')
+  }
+  return value;
+};
+
 const validateAvatar = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required().custom((value, helpers) => {
-      if (validator.isURL(value)) {
-        return value;
-      }
-      return helpers.message('Невалидная ссылка');
-    }),
+    avatar: Joi.string().required().custom(validateLink)
   }),
-})
+});
 
 const validateCard = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required().custom((value, helpers) => {
-      if (validator.isURL(value)) {
-        return value;
-      }
-      return helpers.message('Невалидная ссылка');
-    }),
+    link: Joi.string().required().custom(validateLink)
   }),
-})
+});
 
-module.exports = { validateUserId, validateCardId, validateProfile, validateAvatar, validateCard };
+module.exports = { validateUserId, validateCardId, validateProfile, validateLink, validateAvatar, validateCard };

@@ -1,7 +1,5 @@
 const bcrypt = require('bcryptjs');
-//const validator = require('validator');
 const jwt = require('jsonwebtoken');
-
 const User = require('../models/user');
 const UnauthorizedError = require('../errors/unauthorizedError');
 const BadRequestError = require('../errors/badRequestError');
@@ -53,7 +51,7 @@ module.exports.createUser = (req, res, next) => {
     }
   })
     .then((hash) => {
-      return User.create({ name, about, avatar, email, password: hash, });
+      return User.create({ name, about, avatar, email, password: hash });
     })
 
     .then((user) => {
@@ -69,8 +67,9 @@ module.exports.createUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные'))
-      }
-      else {
+      } else if (err.code === 11000) {
+        next(new ConflictError('Пользователь с таким Email уже существует'))
+      } else {
         next(err);
       }
     });
@@ -78,24 +77,16 @@ module.exports.createUser = (req, res, next) => {
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
-    .then((users) => res.status(200).send({ data: users }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
-      } else {
-        next(err);
-      }
-    });
+    .then((users) => res.send(users))
+    .catch(next);
 };
 
 module.exports.getCurrentUser = (req, res, next) => {
-  User.findById(req.params.userId)
-    .then((user) => {
-      if (user) {
-        return res.status(200).send({ data: user });
-      }
-      throw new NotFoundError('Пользователь с таким id не найден')
-    })
+  User.findById(req.user._id)
+    .orFail(() => {
+    next(new NotFoundError('Пользователь с таким id не найден'));
+  })
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные'));
@@ -106,13 +97,11 @@ module.exports.getCurrentUser = (req, res, next) => {
 };
 
 module.exports.getUserById = (req, res, next) => {
-  const { userId } = req.params;
-  console.log(userId);
-  User.findById(userId)
+  User.findById(req.params.userId)
     .orFail(() => {
       next(new NotFoundError('Пользователь с таким id не найден'));
     })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Передан невалидный id пользователя'));
@@ -129,18 +118,11 @@ module.exports.updateProfile = (req, res, next) => {
     { name, about },
     { new: true, runValidators: true },
   )
-    .then((user) => {
-      if (user) {
-        return res.send({ data: user });
-      }
-    throw new NotFoundError('Пользователь с таким id не найден');
-    })
+    .orFail(() => new NotFoundError('Пользователь с таким id не найден'))
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
-      }
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Введены некорректные данные'))
       } else {
       next(err);
       }
@@ -152,21 +134,12 @@ module.exports.updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
-    { new: true, runValidators: true },
-  )
-
-    .then((user) => {
-      if (user) {
-        return res.send({ data: user });
-      }
-      throw new NotFoundError('Пользователь с таким id не найден');
-    })
+    { new: true, runValidators: true })
+    .orFail(() => new NotFoundError('Пользователь с таким id не найден'))
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
-      }
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Введены некорректные данные'))
       } else {
       next(err);
       }
