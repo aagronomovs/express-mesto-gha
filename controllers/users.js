@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const validator = require('validator');
+//const validator = require('validator');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
@@ -29,7 +29,7 @@ module.exports.login = (req, res, next) => {
             { expiresIn: '7d' });
 
           // вернём токен
-          res.cookie('jwt', token, {
+         return res.cookie('jwt', token, {
             maxAge: 3600000 * 24 * 7,
             secure: true,
             sameSite: 'none',
@@ -44,11 +44,15 @@ module.exports.login = (req, res, next) => {
 module.exports.createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body;
 
-  bcrypt.hash(password, 10)
+  User.findOne({email})
+  .then((user) => {
+    if (user) {
+      next(new ConflictError('Пользователь с таким email уже существует'))
+    } else {
+      return bcrypt.hash(password, 10)
+    }
+  })
     .then((hash) => {
-      if (!validator.isEmail(email)) {
-        throw new BadRequestError('Неправильные почта или пароль')
-      }
       return User.create({ name, about, avatar, email, password: hash, });
     })
 
@@ -66,18 +70,22 @@ module.exports.createUser = (req, res, next) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные'))
       }
-      if (err.name === 'MongoServerError' && err.code === 11000) {
-        next(new ConflictError('Пользователь с таким email уже существует'))
+      else {
+        next(err);
       }
-      next(err);
-
     });
 };
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.status(200).send({ data: users }))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.getCurrentUser = (req, res, next) => {
@@ -89,10 +97,11 @@ module.exports.getCurrentUser = (req, res, next) => {
       throw new NotFoundError('Пользователь с таким id не найден')
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные'));
-      }
+      } else {
       next(err);
+      }
     });
 };
 
@@ -132,9 +141,10 @@ module.exports.updateProfile = (req, res, next) => {
       }
       if (err.name === 'CastError') {
         next(new BadRequestError('Введены некорректные данные'))
-      }
+      } else {
       next(err);
-    })
+      }
+    });
 };
 
 module.exports.updateAvatar = (req, res, next) => {
@@ -157,7 +167,8 @@ module.exports.updateAvatar = (req, res, next) => {
       }
       if (err.name === 'CastError') {
         next(new BadRequestError('Введены некорректные данные'))
-      }
+      } else {
       next(err);
-    })
+      }
+    });
     };

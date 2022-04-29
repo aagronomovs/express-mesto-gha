@@ -29,8 +29,8 @@ app.use(express.json());
 
 app.post('/signup', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
+    name: Joi.string().default('Жак-Ив Кусто').min(2).max(30),
+    about: Joi.string().default('Исследователь').min(2).max(30),
     avatar: Joi.string().required(),
     email: Joi.string().required().email(),
     password: Joi.string().required()
