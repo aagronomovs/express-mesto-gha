@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const { celebrate, Joi, errors } = require('celebrate');
 const routerUser = require('./routes/users');
 const routerCards = require('./routes/cards');
@@ -10,21 +11,19 @@ const auth = require('./middlewares/auth');
 const NotFoundError = require('./errors/notFoundError');
 const { centralizedErrors } = require('./middlewares/centralizedErrors');
 const { validateLink} = require('./middlewares/validation');
-
 const { PORT = 3000 } = process.env;
 
 
 const app = express();
 
-//console.log(process.env.NODE_ENV);
-
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
+  useUnifiedTopology: true,
   });
 
 app.use(bodyParser.json()); // для собирания JSON-формата
 app.use(bodyParser.urlencoded({ extended: true })); // для приёма веб-страниц внутри POST-запроса
-
+app.use(cookieParser());
 app.use(express.json());
 
 app.post('/signup', celebrate({
@@ -33,7 +32,7 @@ app.post('/signup', celebrate({
     about: Joi.string().default('Исследователь').min(2).max(30),
     avatar: Joi.string().required().custom(validateLink),
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(4)
+    password: Joi.string().required()
 }),
 }),
 createUser);
