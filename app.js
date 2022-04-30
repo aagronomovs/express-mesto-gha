@@ -8,7 +8,7 @@ const routerCards = require('./routes/cards');
 const { login, createUser} = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const NotFoundError = require('./errors/notFoundError');
-const centralizedErrors = require('./middlewares/centralizedErrors');
+const { centralizedErrors } = require('./middlewares/centralizedErrors');
 const { validateLink} = require('./middlewares/validation');
 
 const { PORT = 3000 } = process.env;
@@ -40,7 +40,7 @@ createUser);
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(4)
+    password: Joi.string().required()
 }),
 }),
 login);
