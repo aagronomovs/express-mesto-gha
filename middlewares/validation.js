@@ -16,8 +16,8 @@ const validateCardId = celebrate({
 
 const validateProfile = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    about: Joi.string().required().min(2).max(30),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
   })
 })
 
@@ -30,7 +30,7 @@ const validateLink = (value) => {
 
 const validateAvatar = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required().custom(validateLink)
+    avatar: Joi.string().custom(validateLink)
   }),
 });
 

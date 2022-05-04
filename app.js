@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser');
 const { celebrate, Joi, errors } = require('celebrate');
 const routerUser = require('./routes/users');
 const routerCards = require('./routes/cards');
-const { login, createUser} = require('./controllers/users');
+const {login, createUser} = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const NotFoundError = require('./errors/notFoundError');
 const { centralizedErrors } = require('./middlewares/centralizedErrors');
@@ -26,11 +26,12 @@ app.use(bodyParser.urlencoded({ extended: true })); // для приёма ве�
 app.use(cookieParser());
 app.use(express.json());
 
+// роуты, не требующие авторизации
 app.post('/signup', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().default('Жак-Ив Кусто').min(2).max(30),
-    about: Joi.string().default('Исследователь').min(2).max(30),
-    avatar: Joi.string().required().custom(validateLink),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().custom(validateLink),
     email: Joi.string().required().email(),
     password: Joi.string().required()
 }),
@@ -44,13 +45,18 @@ app.post('/signin', celebrate({
 }),
 login);
 
+//авторизация
 app.use(auth);
+
+// роуты, которым авторизация нужна
 app.use(routerUser);
 app.use(routerCards);
-app.use(errors());
+
+
 app.use( '*', (req, res, next) => {
   next(new NotFoundError('Запрошенной страницы не существует'))
 });
+app.use(errors());
 app.use(centralizedErrors);
 
 app.listen(PORT, () => {

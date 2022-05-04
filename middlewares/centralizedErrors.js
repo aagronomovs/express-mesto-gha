@@ -3,9 +3,11 @@ const centralizedErrors = (err, req, res, next) => {
   res
     .status(statusCode)
     .send({
-      message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
+      message: statusCode === 500
+      ? 'err.name = ${err.name} ; err.message = ${err.message} ; Ошибка на сервере'
+      : message,
     });
-  next();
+  return next();
 };
 
 module.exports = { centralizedErrors }
