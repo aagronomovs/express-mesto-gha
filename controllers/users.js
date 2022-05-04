@@ -112,16 +112,7 @@ module.exports.createUser = (req, res, next) => {
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
-    .then((users) => res.send(users))
-    .catch(next);
-};
-
-module.exports.getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id)
-    .orFail(() => new NotFoundError('Пользователь с таким id не найден'))
-    .then((user) => res.send({
-      data: user
-    }))
+    .then((users) => res.send({ data: users}))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные'));
@@ -131,14 +122,23 @@ module.exports.getCurrentUser = (req, res, next) => {
     });
 };
 
+module.exports.getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(() => new NotFoundError('Пользователь с таким id не найден'))
+    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Передан невалидный id пользователя'));
+      } else {
+        next(err);
+      }
+    });
+};
+
 module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(() => {
-      next(new NotFoundError('Пользователь с таким id не найден'));
-    })
-    .then((user) => res.send({
-      data: user
-    }))
+    .orFail(() => new NotFoundError('Пользователь с таким id не найден'))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Передан невалидный id пользователя'));
@@ -154,42 +154,36 @@ module.exports.updateProfile = (req, res, next) => {
     about
   } = req.body;
   User.findByIdAndUpdate(
-      req.user._id, {
-        name,
-        about
-      }, {
-        new: true,
+      req.user._id,
+      { name, about },
+      { new: true,
         runValidators: true
       },
     )
     .orFail(() => new NotFoundError('Пользователь с таким id не найден'))
-    .then((user) => res.send({
-      data: user
-    }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
-      } else {
+      }
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Передан невалидный id пользователя'));
+      }
+      else {
         next(err);
       }
     });
 };
 
 module.exports.updateAvatar = (req, res, next) => {
-  const {
-    avatar
-  } = req.body;
+  const { avatar } = req.body;
   User.findByIdAndUpdate(
-      req.user._id, {
-        avatar
-      }, {
+      req.user._id, { avatar }, {
         new: true,
         runValidators: true
       })
     .orFail(() => new NotFoundError('Пользователь с таким id не найден'))
-    .then((user) => res.send({
-      data: user
-    }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));

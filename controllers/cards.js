@@ -7,7 +7,13 @@ const BadRequestError = require('../errors/badRequestError');
 module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((data) => res.send(data))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.createCard = (req, res, next) => {
@@ -29,7 +35,7 @@ module.exports.deleteCard = (req, res, next) => {
     .orFail(() => new NotFoundError('Карточка с указанным id не найдена'))
     .then((card) => {
      if (card.owner._id.toString() === req.user._id) {
-       return card.remove()
+       return Card.remove()
           .then(() => res.send({message: 'Карточка удалена'}))
       }
       return next(new ForbiddenError('Нет прав на удаление этой карточки'))
