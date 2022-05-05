@@ -5,34 +5,8 @@ const UnauthorizedError = require('../errors/unauthorizedError');
 const BadRequestError = require('../errors/badRequestError');
 const ConflictError = require('../errors/conflictError');
 const NotFoundError = require('../errors/notFoundError');
-//const { isCelebrateError } = require('celebrate');
-//const {  NODE_ENV,  JWT_SECRET} = process.env;
 const SALT_ROUND = 10;
 
-// module.exports.login = (req, res, next) => {
-//   const { email, password } = req.body;
-
-//   User.findOne({ email })
-//     .then((user) => {
-//       if (!user) {
-//         return Promise.reject(new Error('Неправильные почта или пароль'));
-//       }
-
-//       return bcrypt.compare(password, user.password);
-//     })
-//     .then((matched) => {
-//       if (!matched) {
-//         // хеши не совпали — отклоняем промис
-//         return Promise.reject(new UnauthorizedError('Неправильные почта или пароль'));
-//       }
-
-//       // аутентификация успешна
-//       res.send({ message: 'Всё верно!' });
-//     })
-//     .catch(() => {
-//       next(new UnauthorizedError('Передан неверный логин или пароль'))
-//     });
-// };
 
 module.exports.login = (req, res, next) => {
   const {
