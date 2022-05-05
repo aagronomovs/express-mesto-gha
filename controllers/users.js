@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-//const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const UnauthorizedError = require('../errors/unauthorizedError');
 const BadRequestError = require('../errors/badRequestError');
@@ -9,47 +9,43 @@ const NotFoundError = require('../errors/notFoundError');
 //const {  NODE_ENV,  JWT_SECRET} = process.env;
 const SALT_ROUND = 10;
 
+// module.exports.login = (req, res, next) => {
+//   const { email, password } = req.body;
+
+//   User.findOne({ email })
+//     .then((user) => {
+//       if (!user) {
+//         return Promise.reject(new Error('Неправильные почта или пароль'));
+//       }
+
+//       return bcrypt.compare(password, user.password);
+//     })
+//     .then((matched) => {
+//       if (!matched) {
+//         // хеши не совпали — отклоняем промис
+//         return Promise.reject(new UnauthorizedError('Неправильные почта или пароль'));
+//       }
+
+//       // аутентификация успешна
+//       res.send({ message: 'Всё верно!' });
+//     })
+//     .catch(() => {
+//       next(new UnauthorizedError('Передан неверный логин или пароль'))
+//     });
+// };
+
 module.exports.login = (req, res, next) => {
-  const { email, password } = req.body;
+  const {
+    email,
+    password
+  } = req.body;
 
-  User.findOne({ email })
-    .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      }
-
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (!matched) {
-        // хеши не совпали — отклоняем промис
-        return Promise.reject(new UnauthorizedError('Неправильные почта или пароль'));
-      }
-
-      // аутентификация успешна
-      res.send({ message: 'Всё верно!' });
-    })
-    .catch(() => {
-      next(new UnauthorizedError('Передан неверный логин или пароль'))
-    });
-};
-
-//module.exports.login = (req, res, next) => {
- // const {
- //   email,
- //   password
- // } = req.body;
-
-  //return User.findUserByCredentials(email, password)
-   // .then((user) => {
+ return User.findUserByCredentials(email, password)
+  .then((user) => {
       // создадим токен
 
-   //   const token = jwt.sign({
-    //      _id: user._id
-      //  },
-       // NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', {
-        //  expiresIn: '7d'
-        //});
+    const token = jwt.sign({ _id: user._id},
+    'some-secret-key', { expiresIn: '7d' });
 
       // вернём токен
       //return res.cookie('jwt', token, {
@@ -57,14 +53,12 @@ module.exports.login = (req, res, next) => {
       //  httpOnly: true,
       //  sameSite: 'none',
       //})
-   //   res.status(200).send({
-    //    jwt: token
-     // });
-    //})
-    //.catch(() => {
-    //  next(new UnauthorizedError('Передан неверный логин или пароль'))
-    //});
-//}
+      res.status(200).send({ token });
+   })
+   .catch(() => {
+     next(new UnauthorizedError('Передан неверный логин или пароль'))
+   });
+}
 
 
 module.exports.createUser = (req, res, next) => {
