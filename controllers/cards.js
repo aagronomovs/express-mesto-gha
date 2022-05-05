@@ -31,14 +31,16 @@ module.exports.createCard = (req, res, next) => {
 };
 
 module.exports.deleteCard = (req, res, next) => {
-  Card.findById(req.params.cardId)
+  const { cardId } = req.params;
+  Card.findById(cardId)
     .orFail(() => new NotFoundError('Карточка с указанным id не найдена'))
     .then((card) => {
-     if (card.owner._id.toString() === req.user._id) {
-       return Card.remove()
-          .then(() => res.send({message: 'Карточка удалена'}))
+     if (card.owner.toString() === req.user._id) {
+       return Card.findByIdAndRemove(card._id.toString())
+          .then((answer) => res.send({data: answer}))
+      } else {
+       next(new ForbiddenError('Нет прав на удаление этой карточки'))
       }
-      return next(new ForbiddenError('Нет прав на удаление этой карточки'))
     })
       .catch((err) => {
       if (err.name === 'CastError') {
@@ -50,12 +52,13 @@ module.exports.deleteCard = (req, res, next) => {
   };
 
   module.exports.likeCard = (req, res, next) => {
+    const { cardId } = req.params;
     Card.findByIdAndUpdate(
-      req.params.cardId,
+      cardId,
       { $addToSet: { likes: req.user._id } },
-      { new: true })
+      { new: true, runValidators: true })
       .orFail(() => new NotFoundError('Передан несуществующий id карточки'))
-      .then((card) => res.send(card))
+      .then((card) => res.send({ data: card }))
       .catch((err) => {
         if (err.name === 'CastError') {
          next(new BadRequestError('Переданы некорректные данные для постановки лайка'))
@@ -69,9 +72,9 @@ module.exports.deleteCard = (req, res, next) => {
     Card.findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: req.user._id } },
-      { new: true })
+      { new: true, runValidators: true })
       .orFail(() => new NotFoundError('Передан несуществующий id карточки'))
-      .then((card) => res.send(card))
+      .then((card) => res.send({ data: card }))
       .catch((err) => {
         if (err.name === 'CastError') {
           next(new BadRequestError('Переданы некорректные данные для постановки лайка'))
